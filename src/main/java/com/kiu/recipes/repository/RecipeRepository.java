@@ -22,25 +22,28 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     List<Recipe> findByChefIdOrderByCreatedAtDesc(Long chefId);
 
     // --- custom @Query ---
-    /** Recipes carrying a given tag (many-to-many join). */
+    /**
+     * Combined search: every filter is optional (null = ignore). Joins the many-to-many
+     * tags table, so DISTINCT plus an explicit count query keep paging correct.
+     */
     @Query(value = """
-            select distinct r from Recipe r join r.tags t
-            where lower(t.name) = lower(:tag)
+            select distinct r from Recipe r left join r.tags t
+            where (:tag is null or lower(t.name) = lower(:tag))
+              and (:categoryId is null or r.category.id = :categoryId)
+              and (:difficulty is null or r.difficulty = :difficulty)
+              and r.cookTimeMinutes between :minTime and :maxTime
             """,
             countQuery = """
-                    select count(distinct r) from Recipe r join r.tags t
-                    where lower(t.name) = lower(:tag)
+                    select count(distinct r) from Recipe r left join r.tags t
+                    where (:tag is null or lower(t.name) = lower(:tag))
+                      and (:categoryId is null or r.category.id = :categoryId)
+                      and (:difficulty is null or r.difficulty = :difficulty)
+                      and r.cookTimeMinutes between :minTime and :maxTime
                     """)
-    Page<Recipe> findByTagName(@Param("tag") String tag, Pageable pageable);
-
-    /** Optional difficulty plus a cook-time range. A null difficulty means "any". */
-    @Query("""
-            select r from Recipe r
-            where (:difficulty is null or r.difficulty = :difficulty)
-              and r.cookTimeMinutes between :minTime and :maxTime
-            """)
-    Page<Recipe> filterByDifficultyAndTime(@Param("difficulty") Difficulty difficulty,
-                                           @Param("minTime") int minTime,
-                                           @Param("maxTime") int maxTime,
-                                           Pageable pageable);
+    Page<Recipe> search(@Param("tag") String tag,
+                        @Param("categoryId") Long categoryId,
+                        @Param("difficulty") Difficulty difficulty,
+                        @Param("minTime") int minTime,
+                        @Param("maxTime") int maxTime,
+                        Pageable pageable);
 }
