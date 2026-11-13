@@ -18,6 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -35,15 +38,18 @@ public class RecipeService {
     private final ChefRepository chefRepository;
     private final CategoryRepository categoryRepository;
     private final TagService tagService;
+    private final FileStorageService fileStorageService;
 
     public RecipeService(RecipeRepository recipeRepository,
                          ChefRepository chefRepository,
                          CategoryRepository categoryRepository,
-                         TagService tagService) {
+                         TagService tagService,
+                         FileStorageService fileStorageService) {
         this.recipeRepository = recipeRepository;
         this.chefRepository = chefRepository;
         this.categoryRepository = categoryRepository;
         this.tagService = tagService;
+        this.fileStorageService = fileStorageService;
     }
 
     // ---------- reads ----------
@@ -121,9 +127,44 @@ public class RecipeService {
         return RecipeResponse.from(recipe);
     }
 
+    /** Creates a recipe and, if a file is supplied, stores it and saves its name on the recipe. */
+    @Transactional
+    public RecipeResponse createWithImage(RecipeRequest request, MultipartFile file) {
+        Recipe recipe = new Recipe();
+        apply(recipe, request);
+        if (file != null && !file.isEmpty()) {
+            String stored = fileStorageService.store(file);
+            recipe.setImageFileName(stored);
+            cleanupAfterTransaction(null, stored);
+        }
+        return RecipeResponse.from(recipeRepository.save(recipe));
+    }
+
+    /** Stores the uploaded image and records its file name; replaces (and removes) any previous image. */
+    @Transactional
+    public RecipeResponse uploadImage(Long id, MultipartFile file) {
+        Recipe recipe = getEntity(id);
+        String stored = fileStorageService.store(file);
+        String previous = recipe.getImageFileName();
+        recipe.setImageFileName(stored);
+        cleanupAfterTransaction(previous, stored);
+        return RecipeResponse.from(recipe);
+    }
+
+    @Transactional
+    public RecipeResponse removeImage(Long id) {
+        Recipe recipe = getEntity(id);
+        String previous = recipe.getImageFileName();
+        recipe.setImageFileName(null);
+        cleanupAfterTransaction(previous, null);
+        return RecipeResponse.from(recipe);
+    }
+
     @Transactional
     public void delete(Long id) {
-        recipeRepository.delete(getEntity(id));
+        Recipe recipe = getEntity(id);
+        cleanupAfterTransaction(recipe.getImageFileName(), null);
+        recipeRepository.delete(recipe);
     }
 
     // ---------- helpers ----------
@@ -143,6 +184,19 @@ public class RecipeService {
         recipe.setChef(chef);
         recipe.setCategory(category);
         recipe.setTags(tagService.resolveTags(req.tagNames()));
+    }
+
+    /**
+     * Keeps disk and database consistent: once the transaction ends, delete {@code deleteIfCommitted}
+     * (an old file the DB no longer references) or {@code deleteIfRolledBack} (a new file the DB never kept).
+     */
+    private void cleanupAfterTransaction(String deleteIfCommitted, String deleteIfRolledBack) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                fileStorageService.delete(status == STATUS_COMMITTED ? deleteIfCommitted : deleteIfRolledBack);
+            }
+        });
     }
 
     private Recipe getEntity(Long id) {

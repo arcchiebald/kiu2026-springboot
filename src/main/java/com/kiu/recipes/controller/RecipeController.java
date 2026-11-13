@@ -12,9 +12,11 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -87,5 +90,28 @@ public class RecipeController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         recipeService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Create a recipe with an optional photo (multipart/form-data)",
+            description = "Form fields bind to the recipe via @ModelAttribute; the optional 'file' part is the photo (JPEG/PNG/GIF/WEBP, max 5MB).")
+    @PostMapping(value = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<RecipeResponse> createWithImage(
+            @Valid @ModelAttribute RecipeRequest request,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+        RecipeResponse created = recipeService.createWithImage(request, file);
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/recipes/{id}").buildAndExpand(created.id()).toUri();
+        return ResponseEntity.created(location).body(created);
+    }
+
+    @Operation(summary = "Upload / replace a recipe's photo (multipart/form-data)")
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public RecipeResponse uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        return recipeService.uploadImage(id, file);
+    }
+
+    @DeleteMapping("/{id}/image")
+    public RecipeResponse removeImage(@PathVariable Long id) {
+        return recipeService.removeImage(id);
     }
 }

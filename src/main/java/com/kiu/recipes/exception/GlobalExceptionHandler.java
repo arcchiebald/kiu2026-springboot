@@ -31,7 +31,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidation(BindException ex) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
-            fieldErrors.putIfAbsent(fe.getField(), fe.getDefaultMessage());
+            // binding failures (e.g. "abc" for a number) would otherwise leak Java type names
+            String message = fe.isBindingFailure() ? "has an invalid value" : fe.getDefaultMessage();
+            fieldErrors.putIfAbsent(fe.getField(), message);
         }
         ex.getBindingResult().getGlobalErrors()
                 .forEach(ge -> fieldErrors.putIfAbsent(ge.getObjectName(), ge.getDefaultMessage()));
