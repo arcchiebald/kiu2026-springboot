@@ -88,7 +88,7 @@ class RecipeRepositoryTest {
 
     @Test
     void query_search_byTagIsCaseInsensitiveAndDistinct() {
-        Page<Recipe> page = recipes.search("VEGAN", null, null, 0, 1440, PageRequest.of(0, 10));
+        Page<Recipe> page = recipes.search(null, "VEGAN", null, null, 0, 1440, PageRequest.of(0, 10));
         assertThat(page.getTotalElements()).isEqualTo(2);
         assertThat(page.getContent()).extracting(Recipe::getTitle)
                 .containsExactlyInAnyOrder("Lentil Soup", "Veggie Stir Fry");
@@ -96,13 +96,13 @@ class RecipeRepositoryTest {
 
     @Test
     void query_search_combinesFilters() {
-        Page<Recipe> easyVegan = recipes.search("vegan", dinner.getId(), Difficulty.EASY, 0, 20, PageRequest.of(0, 10));
+        Page<Recipe> easyVegan = recipes.search(null, "vegan", dinner.getId(), Difficulty.EASY, 0, 20, PageRequest.of(0, 10));
         assertThat(easyVegan.getContent()).extracting(Recipe::getTitle).containsExactly("Veggie Stir Fry");
     }
 
     @Test
     void query_search_nullFiltersMeanAny() {
-        Page<Recipe> all = recipes.search(null, null, null, 0, 1440, PageRequest.of(0, 2, Sort.by("title")));
+        Page<Recipe> all = recipes.search(null, null, null, null, 0, 1440, PageRequest.of(0, 2, Sort.by("title")));
         assertThat(all.getTotalElements()).isEqualTo(3);
         assertThat(all.getContent()).hasSize(2);
         assertThat(all.getTotalPages()).isEqualTo(2);

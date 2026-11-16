@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="${recipe != null} ? 'Edit recipe' : 'New recipe'">Recipe form</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+    <h1 class="h2 mb-4" th:text="${recipe != null} ? 'Edit “' + ${recipe.title} + '”' : 'Share a new recipe'">New recipe</h1>
+
+    <div th:if="${#lists.isEmpty(chefs) or #lists.isEmpty(categories)}" class="alert alert-warning">
+        A recipe needs a chef and a category.
+        <a th:if="${#lists.isEmpty(chefs)}" th:href="@{/chefs/new}">Add a chef</a>
+        <span th:if="${#lists.isEmpty(chefs) and #lists.isEmpty(categories)}">and</span>
+        <a th:if="${#lists.isEmpty(categories)}" th:href="@{/categories}">add a category</a> first.
+    </div>
+
+    <form th:object="${recipeForm}"
+          th:action="${recipe != null} ? @{/recipes/{id}(id=${recipe.id})} : @{/recipes}"
+          method="post" enctype="multipart/form-data" novalidate class="row g-4">
+
+        <div class="col-12" th:if="${#fields.hasGlobalErrors()}">
+            <div class="alert alert-danger mb-0" th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card card-body">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" th:field="*{title}" th:errorclass="is-invalid" maxlength="150"/>
+                    <div class="invalid-feedback" th:errors="*{title}">Title error</div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Short description <span class="text-body-secondary">(optional)</span></label>
+                    <textarea class="form-control" id="description" rows="2" th:field="*{description}" th:errorclass="is-invalid"></textarea>
+                    <div class="invalid-feedback" th:errors="*{description}">Description error</div>
+                </div>
+                <div class="mb-3">
+                    <label for="instructions" class="form-label">Instructions</label>
+                    <textarea class="form-control" id="instructions" rows="9" th:field="*{instructions}" th:errorclass="is-invalid"
+                              placeholder="One step per line…"></textarea>
+                    <div class="invalid-feedback" th:errors="*{instructions}">Instructions error</div>
+                </div>
+                <div>
+                    <label for="tags" class="form-label">Tags <span class="text-body-secondary">(comma separated, new ones are created)</span></label>
+                    <input type="text" class="form-control" id="tags" th:field="*{tags}" th:errorclass="is-invalid" placeholder="vegan, quick, one-pot"/>
+                    <div class="invalid-feedback" th:errors="*{tags}">Tags error</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card card-body mb-4">
+                <div class="mb-3">
+                    <label for="chefId" class="form-label">Chef</label>
+                    <select class="form-select" id="chefId" th:field="*{chefId}" th:errorclass="is-invalid">
+                        <option value="">Choose a chef…</option>
+                        <option th:each="c : ${chefs}" th:value="${c.id}" th:text="${c.name}">Chef</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{chefId}">Chef error</div>
+                </div>
+                <div class="mb-3">
+                    <label for="categoryId" class="form-label">Category</label>
+                    <select class="form-select" id="categoryId" th:field="*{categoryId}" th:errorclass="is-invalid">
+                        <option value="">Choose a category…</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">Dinner</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{categoryId}">Category error</div>
+                </div>
+                <div class="mb-3">
+                    <label for="difficulty" class="form-label">Difficulty</label>
+                    <select class="form-select" id="difficulty" th:field="*{difficulty}" th:errorclass="is-invalid">
+                        <option th:each="d : ${difficulties}" th:value="${d}"
+                                th:text="${#strings.capitalize(#strings.toLowerCase(d))}">Easy</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{difficulty}">Difficulty error</div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label for="cookTimeMinutes" class="form-label">Minutes</label>
+                        <input type="number" min="1" max="1440" class="form-control" id="cookTimeMinutes"
+                               th:field="*{cookTimeMinutes}" th:errorclass="is-invalid"/>
+                        <div class="invalid-feedback" th:errors="*{cookTimeMinutes}">Time error</div>
+                    </div>
+                    <div class="col-6">
+                        <label for="servings" class="form-label">Servings</label>
+                        <input type="number" min="1" max="100" class="form-control" id="servings"
+                               th:field="*{servings}" th:errorclass="is-invalid"/>
+                        <div class="invalid-feedback" th:errors="*{servings}">Servings error</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-body">
+                <label for="image" class="form-label">Photo <span class="text-body-secondary">(optional)</span></label>
+                <div th:if="${recipe != null and recipe.imageUrl != null}" class="mb-2">
+                    <img th:src="@{${recipe.imageUrl}}" alt="Current photo" class="img-fluid rounded-3 mb-2"/>
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            th:formaction="@{/recipes/{id}/image/delete(id=${recipe.id})}" formnovalidate
+                            onclick="return confirm('Remove the current photo?');">
+                        <i class="fa-solid fa-image"></i> Remove photo
+                    </button>
+                    <div class="form-text">Choose a file below to replace it.</div>
+                </div>
+                <input type="file" class="form-control" id="image" name="image" th:errorclass="is-invalid"
+                       accept="image/jpeg,image/png,image/gif,image/webp"/>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('image')}" th:errors="*{image}">Image error</div>
+                <div class="form-text">JPEG, PNG, GIF or WEBP, up to 5&nbsp;MB.</div>
+                <img id="preview" class="img-fluid rounded-3 mt-2 d-none" alt="Preview of the chosen photo"/>
+            </div>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg"
+                    th:text="${recipe != null} ? 'Save changes' : 'Publish recipe'">Publish recipe</button>
+            <a class="btn btn-outline-secondary btn-lg"
+               th:href="${recipe != null} ? @{/recipes/{id}(id=${recipe.id})} : @{/recipes}">Cancel</a>
+        </div>
+    </form>
+
+    <script>
+        // Show a preview of the chosen photo before uploading.
+        document.getElementById('image').addEventListener('change', function () {
+            var preview = document.getElementById('preview');
+            var file = this.files && this.files[0];
+            if (file && file.type.indexOf('image/') === 0) {
+                preview.src = URL.createObjectURL(file);
+                preview.classList.remove('d-none');
+            } else {
+                preview.classList.add('d-none');
+            }
+        });
+    </script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,65 @@
+:root {
+    --rb-accent: #c2410c;
+    --rb-accent-dark: #9a3412;
+    --rb-cream: #fff8f1;
+    --rb-cream-2: #fdeedd;
+    --bs-body-bg: #fffdfa;
+    --bs-link-color: var(--rb-accent);
+    --bs-link-hover-color: var(--rb-accent-dark);
+    --bs-link-color-rgb: 194, 65, 12;
+    --bs-link-hover-color-rgb: 154, 52, 18;
+    --bs-primary: var(--rb-accent);
+    --bs-primary-rgb: 194, 65, 12;
+}
+
+body { background: var(--bs-body-bg); }
+h1, h2, .rb-brand { font-family: Georgia, "Times New Roman", serif; }
+
+.rb-accent { color: var(--rb-accent); }
+
+.btn-primary {
+    --bs-btn-bg: var(--rb-accent);
+    --bs-btn-border-color: var(--rb-accent);
+    --bs-btn-hover-bg: var(--rb-accent-dark);
+    --bs-btn-hover-border-color: var(--rb-accent-dark);
+    --bs-btn-active-bg: var(--rb-accent-dark);
+    --bs-btn-active-border-color: var(--rb-accent-dark);
+    --bs-btn-disabled-bg: var(--rb-accent);
+    --bs-btn-disabled-border-color: var(--rb-accent);
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--rb-accent);
+    --bs-btn-border-color: var(--rb-accent);
+    --bs-btn-hover-bg: var(--rb-accent);
+    --bs-btn-hover-border-color: var(--rb-accent);
+    --bs-btn-active-bg: var(--rb-accent-dark);
+    --bs-btn-active-border-color: var(--rb-accent-dark);
+}
+
+.rb-navbar { background: var(--rb-cream-2); }
+.rb-brand { color: var(--rb-accent-dark) !important; font-weight: 700; font-size: 1.4rem; }
+.rb-navbar .nav-link.active { color: var(--rb-accent); font-weight: 600; }
+
+.rb-hero { background: linear-gradient(135deg, var(--rb-cream-2), var(--rb-cream)); border: 1px solid #f6dcc0; }
+.rb-filters { background: var(--rb-cream); border-color: #f6dcc0; }
+.rb-footer { background: var(--rb-cream); }
+
+.rb-pill { background: var(--rb-cream-2); color: var(--rb-accent-dark); font-weight: 500; border: 1px solid #f6dcc0; }
+.rb-tag { background: #fff; color: var(--rb-accent-dark); border: 1px solid #f0c9a4; font-weight: 500; }
+.rb-tag:hover { background: var(--rb-cream-2); }
+
+.rb-card { transition: transform .15s ease, box-shadow .15s ease; overflow: hidden; }
+.rb-card:hover { transform: translateY(-3px); box-shadow: 0 .6rem 1.2rem rgba(120, 53, 15, .15); }
+.rb-card-media { display: block; aspect-ratio: 4 / 3; overflow: hidden; background: var(--rb-cream-2); }
+.rb-card-media img { width: 100%; height: 100%; object-fit: cover; }
+
+.rb-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%; min-height: 8rem;
+    background: var(--rb-cream-2); color: #e0a878; font-size: 3rem;
+}
+.rb-placeholder-lg { min-height: 18rem; font-size: 5rem; }
+.rb-detail-img { max-height: 28rem; object-fit: cover; }
+
+.rb-prewrap { white-space: pre-line; }
+.rb-instructions { background: var(--rb-cream); border-color: #f6dcc0; }

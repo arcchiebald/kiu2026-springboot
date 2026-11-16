@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* page: a PageResponse; base: URL ending in "page=", e.g. '/recipes?sort=title,asc&page=' */-->
+<nav th:fragment="pager(page, base)" th:if="${page.totalPages > 1}" aria-label="Pages">
+    <ul class="pagination justify-content-center flex-wrap mb-0">
+        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+            <a class="page-link" th:href="@{${base + (page.page - 1)}}" aria-label="Previous">&laquo;</a>
+        </li>
+        <th:block th:each="n : ${#numbers.sequence(0, page.totalPages - 1)}">
+            <li class="page-item" th:classappend="${n == page.page} ? 'active'"
+                th:if="${n == 0 or n == page.totalPages - 1 or (n >= page.page - 2 and n <= page.page + 2)}">
+                <a class="page-link" th:href="@{${base + n}}" th:text="${n + 1}">1</a>
+            </li>
+            <li class="page-item disabled"
+                th:if="${n == page.page - 3 and n > 0 or n == page.page + 3 and n < page.totalPages - 1}">
+                <span class="page-link">&hellip;</span>
+            </li>
+        </th:block>
+        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+            <a class="page-link" th:href="@{${base + (page.page + 1)}}" aria-label="Next">&raquo;</a>
+        </li>
+    </ul>
+</nav>
+</body>
+</html>

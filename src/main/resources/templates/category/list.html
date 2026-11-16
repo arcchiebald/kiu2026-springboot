@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Categories</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+    <h1 class="h2 mb-4">Categories</h1>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card">
+                <p class="card-body text-body-secondary mb-0" th:if="${#lists.isEmpty(categories)}">No categories yet.</p>
+                <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(categories)}">
+                    <li class="list-group-item d-flex justify-content-between align-items-center" th:each="c : ${categories}">
+                        <a th:href="@{/recipes(categoryId=${c.id})}" class="text-reset text-decoration-none fw-medium">
+                            <i class="fa-solid fa-folder rb-accent me-1"></i><span th:text="${c.name}">Dinner</span>
+                        </a>
+                        <form th:action="@{/categories/{id}/delete(id=${c.id})}" method="post"
+                              onsubmit="return confirm('Delete this category?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete category">
+                                <i class="fa-solid fa-trash"></i></button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <form th:object="${categoryForm}" th:action="@{/categories}" method="post" novalidate class="card card-body">
+                <h2 class="h5">Add a category</h2>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" th:field="*{name}" th:errorclass="is-invalid" maxlength="80"/>
+                    <div class="invalid-feedback" th:errors="*{name}">Name error</div>
+                </div>
+                <button type="submit" class="btn btn-primary align-self-start">Add category</button>
+            </form>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

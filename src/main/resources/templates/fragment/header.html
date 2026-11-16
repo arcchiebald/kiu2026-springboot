@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="header">
+    <nav class="navbar navbar-expand-md rb-navbar shadow-sm">
+        <div class="container">
+            <a class="navbar-brand rb-brand" th:href="@{/}"><i class="fa-solid fa-utensils"></i> Recipe Box</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/recipes}"
+                           th:classappend="${currentPath != null and (currentPath == '/' or currentPath.startsWith('/recipes')) and currentPath != '/recipes/new'} ? 'active'">Recipes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/chefs}"
+                           th:classappend="${currentPath != null and currentPath.startsWith('/chefs')} ? 'active'">Chefs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/categories}"
+                           th:classappend="${currentPath != null and currentPath.startsWith('/categories')} ? 'active'">Categories</a>
+                    </li>
+                </ul>
+                <a class="btn btn-primary" th:href="@{/recipes/new}"><i class="fa-solid fa-plus"></i> New recipe</a>
+            </div>
+        </div>
+    </nav>
+</header>
+</body>
+</html>

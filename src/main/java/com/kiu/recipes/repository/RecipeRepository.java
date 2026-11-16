@@ -23,12 +23,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     // --- custom @Query ---
     /**
-     * Combined search: every filter is optional (null = ignore). Joins the many-to-many
+     * Combined search: every filter is optional (null = ignore); title is a case-insensitive substring match. Joins the many-to-many
      * tags table, so DISTINCT plus an explicit count query keep paging correct.
      */
     @Query(value = """
             select distinct r from Recipe r left join r.tags t
             where (:tag is null or lower(t.name) = lower(:tag))
+              and (:title is null or lower(r.title) like lower(concat('%', :title, '%')))
               and (:categoryId is null or r.category.id = :categoryId)
               and (:difficulty is null or r.difficulty = :difficulty)
               and r.cookTimeMinutes between :minTime and :maxTime
@@ -36,11 +37,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             countQuery = """
                     select count(distinct r) from Recipe r left join r.tags t
                     where (:tag is null or lower(t.name) = lower(:tag))
+              and (:title is null or lower(r.title) like lower(concat('%', :title, '%')))
                       and (:categoryId is null or r.category.id = :categoryId)
                       and (:difficulty is null or r.difficulty = :difficulty)
                       and r.cookTimeMinutes between :minTime and :maxTime
                     """)
-    Page<Recipe> search(@Param("tag") String tag,
+    Page<Recipe> search(@Param("title") String title,
+                        @Param("tag") String tag,
                         @Param("categoryId") Long categoryId,
                         @Param("difficulty") Difficulty difficulty,
                         @Param("minTime") int minTime,

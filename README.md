@@ -2,7 +2,7 @@
 
 Spring Boot midterm project: a REST backend where **chefs** publish **recipes**, organised by **category** and **tags**, with photo upload, validation, and server-side pagination and sorting.
 
-**Stack:** Java 21, Spring Boot 3.5, Spring Web, Spring Data JPA (Hibernate), Bean Validation, H2 (file-based), springdoc (Swagger UI).
+**Stack:** Java 21, Spring Boot 3.5, Spring Web, Spring Data JPA (Hibernate), Bean Validation, H2 (file-based), springdoc (Swagger UI), and a server-rendered web UI (Thymeleaf + Bootstrap 5).
 
 ## Run it
 
@@ -14,6 +14,7 @@ Requires a **JDK 21 or newer** (a JRE alone is not enough to compile).
 
 | What | Where |
 |---|---|
+| **Web UI** (browse, search, add/edit recipes with photos) | http://localhost:8080/ |
 | Swagger UI (try every endpoint, including uploads) | http://localhost:8080/swagger-ui.html |
 | H2 console | http://localhost:8080/h2-console — JDBC URL `jdbc:h2:file:./data/recipesdb`, user `sa`, empty password |
 | Uploaded images | `./uploads/` on disk, served at `/uploads/{fileName}` |
@@ -21,6 +22,20 @@ Requires a **JDK 21 or newer** (a JRE alone is not enough to compile).
 On first start an empty database is filled with demo data (3 chefs, 4 categories, 8 recipes). Set `app.seed-data=false` to disable.
 
 Run the tests (they use an in-memory database and never touch `./data`): `./mvnw test`
+
+## Web UI
+
+Thymeleaf pages served by the same app (Bootstrap and Font Awesome come from WebJars, so there is no separate frontend build). They call the same services as the REST API.
+
+| Page | Path | What it does |
+|---|---|---|
+| Recipe list | `/`, `/recipes` | Photo cards; search by title; filter by category, difficulty, tag, max time; sort dropdown; 9 per page with pager (`?q=&categoryId=&difficulty=&tag=&maxTime=&sort=title,asc&page=1`) |
+| Recipe details | `/recipes/{id}` | Photo, chef, tags, instructions, edit / delete |
+| New / edit recipe | `/recipes/new`, `/recipes/{id}/edit` | Validated form with photo upload (`multipart/form-data`); errors are shown next to the fields |
+| Chefs | `/chefs`, `/chefs/new`, `/chefs/{id}` | List with top chefs, add, profile with their recipes, delete |
+| Categories | `/categories` | List, add, delete (a category that still has recipes is refused with a message) |
+
+Controllers live in `controller.web` (`@Controller`, constructor injection); form beans (`RecipeForm`, `ChefForm`, `CategoryForm`) mirror the request DTOs' validation rules. Templates are in `src/main/resources/templates` (layout + fragments), styles in `static/css/style.css`. REST errors stay JSON (`GlobalExceptionHandler` only covers `@RestController`s); the pages have their own `WebExceptionHandler` and an `error.html` page.
 
 ## Data model
 
@@ -113,4 +128,4 @@ Base package: `com.kiu.recipes`
 
 ## Tests
 
-`./mvnw test` runs 24 tests: repository queries (`RecipeRepositoryTest`), and MockMvc integration tests (`RecipeApiIntegrationTest`) for validation, CRUD, error handling, pagination/sorting, search, and the full upload flow.
+`./mvnw test` runs 38 tests: repository queries (`RecipeRepositoryTest`), MockMvc integration tests (`RecipeApiIntegrationTest`) for validation, CRUD, error handling, pagination/sorting, search, and the full upload flow, and `WebPagesIntegrationTest` for the HTML pages (rendering, form validation, photo upload, edit/delete, chefs and categories, and that `/api` errors remain JSON).

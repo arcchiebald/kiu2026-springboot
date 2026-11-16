@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="${recipe.title}">Recipe</title>
+</head>
+<body>
+<th:block layout:fragment="content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/recipes}">Recipes</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/recipes(categoryId=${recipe.categoryId})}" th:text="${recipe.categoryName}">Category</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${recipe.title}">Title</li>
+        </ol>
+    </nav>
+
+    <article class="row g-4">
+        <div class="col-lg-5">
+            <img th:if="${recipe.imageUrl != null}" th:src="@{${recipe.imageUrl}}" th:alt="${recipe.title}"
+                 class="img-fluid rounded-4 shadow-sm w-100 rb-detail-img"/>
+            <div th:unless="${recipe.imageUrl != null}" class="rb-placeholder rb-placeholder-lg rounded-4">
+                <i class="fa-solid fa-bowl-food"></i>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <h1 class="display-6 fw-bold" th:text="${recipe.title}">Title</h1>
+            <p class="text-body-secondary">
+                by <a th:href="@{/chefs/{id}(id=${recipe.chefId})}" th:text="${recipe.chefName}">Chef</a>
+                &middot; <span th:text="${#temporals.format(recipe.createdAt, 'd MMM yyyy')}">1 Jan 2026</span>
+            </p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge rb-pill"><i class="fa-regular fa-clock"></i> <span th:text="${recipe.cookTimeMinutes}">30</span> min</span>
+                <span class="badge rb-pill"><i class="fa-solid fa-user-group"></i> <span th:text="${recipe.servings}">4</span> servings</span>
+                <span class="badge rounded-pill"
+                      th:classappend="${recipe.difficulty.name() == 'EASY'} ? 'text-bg-success' : (${recipe.difficulty.name() == 'MEDIUM'} ? 'text-bg-warning' : 'text-bg-danger')"
+                      th:text="${#strings.capitalize(#strings.toLowerCase(recipe.difficulty))}">Easy</span>
+                <a class="badge rb-pill text-decoration-none" th:href="@{/recipes(categoryId=${recipe.categoryId})}">
+                    <i class="fa-solid fa-folder"></i> <span th:text="${recipe.categoryName}">Dinner</span></a>
+            </div>
+            <p class="lead" th:if="${recipe.description != null and !#strings.isEmpty(recipe.description)}"
+               th:text="${recipe.description}">Description</p>
+            <div class="mb-4" th:if="${!#lists.isEmpty(recipe.tags)}">
+                <a th:each="t : ${recipe.tags}" th:href="@{/recipes(tag=${t})}"
+                   class="badge rb-tag text-decoration-none me-1" th:text="'#' + ${t}">#vegan</a>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-primary" th:href="@{/recipes/{id}/edit(id=${recipe.id})}"><i class="fa-solid fa-pen"></i> Edit</a>
+                <form th:action="@{/recipes/{id}/delete(id=${recipe.id})}" method="post"
+                      onsubmit="return confirm('Delete this recipe? This cannot be undone.');">
+                    <button type="submit" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i> Delete</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-12">
+            <section class="card card-body rb-instructions">
+                <h2 class="h4"><i class="fa-solid fa-list-ol rb-accent"></i> Instructions</h2>
+                <p class="mb-0 rb-prewrap" th:text="${recipe.instructions}">Steps</p>
+            </section>
+        </div>
+    </article>
+</th:block>
+</body>
+</html>

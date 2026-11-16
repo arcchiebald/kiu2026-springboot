@@ -74,6 +74,15 @@ public class RecipeService {
                                                Integer minTime, Integer maxTime,
                                                String sortBy, Sort.Direction direction,
                                                int page, int size) {
+        return search(null, tag, categoryId, difficulty, minTime, maxTime, sortBy, direction, page, size);
+    }
+
+    /** Same as above plus an optional case-insensitive title filter (used by the web UI's search box). */
+    @Transactional(readOnly = true)
+    public PageResponse<RecipeResponse> search(String title, String tag, Long categoryId, Difficulty difficulty,
+                                               Integer minTime, Integer maxTime,
+                                               String sortBy, Sort.Direction direction,
+                                               int page, int size) {
         if (!SORTABLE_FIELDS.contains(sortBy)) {
             throw new InvalidRequestException("sortBy must be one of " + SORTABLE_FIELDS);
         }
@@ -86,9 +95,10 @@ public class RecipeService {
             throw new InvalidRequestException("page must be >= 0 and size must be >= 1");
         }
         Pageable pageable = PageRequest.of(page, Math.min(size, MAX_PAGE_SIZE), Sort.by(direction, sortBy));
+        String titleFilter = (title == null || title.isBlank()) ? null : title.trim();
         String tagFilter = (tag == null || tag.isBlank()) ? null : tag.trim();
         return PageResponse.from(
-                recipeRepository.search(tagFilter, categoryId, difficulty, min, max, pageable),
+                recipeRepository.search(titleFilter, tagFilter, categoryId, difficulty, min, max, pageable),
                 RecipeResponse::from);
     }
 
